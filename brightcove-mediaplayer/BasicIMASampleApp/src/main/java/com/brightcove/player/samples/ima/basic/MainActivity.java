@@ -1,11 +1,14 @@
 package com.brightcove.player.samples.ima.basic;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import com.brightcove.ima.GoogleIMAComponent;
 import com.brightcove.ima.GoogleIMAEventType;
 import com.brightcove.player.edge.Catalog;
@@ -21,20 +24,25 @@ import com.brightcove.player.model.Playlist;
 import com.brightcove.player.model.Source;
 import com.brightcove.player.model.VideoFields;
 import com.brightcove.player.util.StringUtil;
-import com.brightcove.player.view.BrightcovePlayer;
 import com.brightcove.player.view.BrightcoveVideoView;
 import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
+import com.google.ads.interactivemedia.v3.api.AdsLoader;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.CompanionAdSlot;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
-import com.soundpays.sdk.Soundpays;
-import com.soundpays.sdk.callbacks.SoundpaysAudioCallback;
-import com.soundpays.sdk.callbacks.SoundpaysCancelAudioCallback;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import nl.ngti.beem.sdk.BMClient;
+import nl.ngti.beem.sdk.BMClientDelegate;
+import nl.ngti.beem.sdk.BMLogger;
+import nl.ngti.beem.sdk.BMScreen;
+import nl.ngti.beem.sdk.BMStyle;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This app illustrates how to use the Google IMA plugin with the
@@ -43,7 +51,7 @@ import java.util.Map;
  * @author Paul Matthew Reilly (original code)
  * @author Paul Michael Reilly (added explanatory comments)
  */
-public class MainActivity extends BrightcovePlayer {
+public class MainActivity extends BrightcovePlayerAppCompat {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -51,9 +59,12 @@ public class MainActivity extends BrightcovePlayer {
     private GoogleIMAComponent googleIMAComponent;
     private BrightcoveMediaController mediaController;
 
-    private Soundpays bmClient;
+    //    private Soundpays soundpays;
+    private BMClient bmClient;
 
     private Handler handler = new Handler(Looper.getMainLooper());
+    private BMClientDelegate bmClientDelegate;
+    private BMLogger bmLogger;
 
 
     @Override
@@ -63,6 +74,7 @@ public class MainActivity extends BrightcovePlayer {
         // management.  Establish the video object and use it's event emitter to get important
         // notifications and to control logging.
         setContentView(R.layout.ima_activity_main);
+        setSupportActionBar(findViewById(R.id.toolbar));
         brightcoveVideoView = (BrightcoveVideoView) findViewById(R.id.brightcove_video_view);
         mediaController = new BrightcoveMediaController(brightcoveVideoView);
         brightcoveVideoView.setMediaController(mediaController);
@@ -92,7 +104,58 @@ public class MainActivity extends BrightcovePlayer {
             }
         });
 
-        bmClient = Soundpays.getInstance(getApplication());
+//        soundpays = Soundpays.getInstance(getApplication());
+        bmClient = BMClient.getInstance(getApplication(), "bluewin");
+        bmClient.onActivityCreated(this, BMStyle.LIGHT);
+        bmClientDelegate = new BMClientDelegate() {
+            @Override
+            public void introduction(@NotNull Function1<? super Boolean, Unit> function1) {
+                function1.invoke(false);
+            }
+
+            @Override
+            public void willShowBeemView(@NotNull BMScreen bmScreen) {
+
+            }
+
+            @Override
+            public void willHideBeemView() {
+
+            }
+        };
+        bmClient.setDelegate(bmClientDelegate);
+        bmLogger = new BMLogger() {
+            @Override
+            public void v(@NotNull String s) {
+                Log.v("bmclient", s);
+            }
+
+            @Override
+            public void d(@NotNull String s) {
+                Log.d("bmclient", s);
+            }
+
+            @Override
+            public void i(@NotNull String s) {
+                Log.i("bmclient", s);
+            }
+
+            @Override
+            public void w(@NotNull String s) {
+                Log.w("bmclient", s);
+            }
+
+            @Override
+            public void e(@NotNull String s) {
+                Log.e("bmclient", s);
+            }
+
+            @Override
+            public void e(@NotNull Throwable throwable) {
+                Log.e("bmclient", "error", throwable);
+            }
+        };
+        bmClient.setLogger(bmLogger);
         startSoundScan();
     }
 
@@ -102,27 +165,26 @@ public class MainActivity extends BrightcovePlayer {
 
     private void soundScan() {
         System.out.println("lalala start sound scan");
-        bmClient.stopAudioScan(new SoundpaysCancelAudioCallback() {
-            @Override
-            public void onCancelComplete() {
-
-            }
-        });
-        bmClient.beginAudioScan(new SoundpaysAudioCallback() {
-            @Override
-            public void onSuccess() {
-                System.out.println("lalala success "+ getCode());
-                handler.postDelayed(() -> soundScan(), 2000);
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                System.out.println("lalala "+ e);
-                e.printStackTrace();
-                handler.postDelayed(() -> soundScan(), 2000);
-            }
-        });
-//        bmClient.onActivityCreated(this, BMStyle.LIGHT);
+//        soundpays.stopAudioScan(new SoundpaysCancelAudioCallback() {
+//            @Override
+//            public void onCancelComplete() {
+//
+//            }
+//        });
+//        soundpays.beginAudioScan(new SoundpaysAudioCallback() {
+//            @Override
+//            public void onSuccess() {
+//                System.out.println("lalala success "+ getCode());
+//                handler.postDelayed(() -> soundScan(), 2000);
+//            }
+//
+//            @Override
+//            public void onFailure(Exception e) {
+//                System.out.println("lalala "+ e);
+//                e.printStackTrace();
+//                handler.postDelayed(() -> soundScan(), 2000);
+//            }
+//        });
     }
 
     /**
@@ -230,10 +292,12 @@ public class MainActivity extends BrightcovePlayer {
                 // URL, and point each to the ad display container
                 // created above.
                 ArrayList<AdsRequest> adsRequests = new ArrayList<AdsRequest>(googleAds.length);
+                AdsLoader loader = sdkFactory.createAdsLoader(MainActivity.this);
                 for (String adURL : googleAds) {
                     AdsRequest adsRequest = sdkFactory.createAdsRequest();
                     adsRequest.setAdTagUrl(adURL);
-                    adsRequest.setAdDisplayContainer(container);
+//                    adsRequest.setAdDisplayContainer(container);
+                    loader.requestAds(adsRequest);
                     adsRequests.add(adsRequest);
                 }
 

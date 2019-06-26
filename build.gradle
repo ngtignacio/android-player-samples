@@ -116,10 +116,10 @@ configure(subprojects.findAll { it.name.endsWith('SampleApp') }) {
     dependencies {
         implementation "com.brightcove.player:android-sdk:${anpVersion}"
 
-//        implementation('com.onda.sdk:beem-ui:1.25.0@aar') {
-//            transitive = true
-//        }
-        implementation "com.soundpays.sdk:soundpays-sdk-release:1.0.1_item4" // hosted in NGTI nexus
+        implementation('com.onda.sdk:beem-ui:1.25.3-Alpha@aar') {
+            transitive = true
+        }
+//        implementation "com.soundpays.sdk:soundpays-sdk-release:1.0.1_item4" // hosted in NGTI nexus
 
         implementation 'com.android.support:multidex:1.0.3'
 
