@@ -1,0 +1,22 @@
+android {
+  defaultConfig{
+    applicationId = "com.brightcove.player.samples.ima.basicimasampleapp"
+  }
+}
+
+//configurations.all {
+//  resolutionStrategy {
+//    eachDependency { DependencyResolveDetails details ->
+//      if (details.requested.group == 'com.android.support' && details.requested.name != 'multidex') {
+//        details.useVersion "28.0.0"
+//      }
+//    }
+//  }
+//}
+
+//dependencies {
+//  implementation('com.onda.sdk:beem-ui:1.25.0@aar') {
+//    transitive = true
+//  }
+//  implementation 'com.android.support:multidex:1.0.3'
+//}

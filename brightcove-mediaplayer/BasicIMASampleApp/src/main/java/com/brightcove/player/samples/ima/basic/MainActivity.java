@@ -1,10 +1,11 @@
 package com.brightcove.player.samples.ima.basic;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.ViewGroup;
-
 import com.brightcove.ima.GoogleIMAComponent;
 import com.brightcove.ima.GoogleIMAEventType;
 import com.brightcove.player.edge.Catalog;
@@ -13,12 +14,12 @@ import com.brightcove.player.event.Event;
 import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
 import com.brightcove.player.event.EventType;
-import com.brightcove.player.model.DeliveryType;
-import com.brightcove.player.model.VideoFields;
 import com.brightcove.player.mediacontroller.BrightcoveMediaController;
 import com.brightcove.player.model.CuePoint;
+import com.brightcove.player.model.DeliveryType;
 import com.brightcove.player.model.Playlist;
 import com.brightcove.player.model.Source;
+import com.brightcove.player.model.VideoFields;
 import com.brightcove.player.util.StringUtil;
 import com.brightcove.player.view.BrightcovePlayer;
 import com.brightcove.player.view.BrightcoveVideoView;
@@ -26,7 +27,9 @@ import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.CompanionAdSlot;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
-
+import com.soundpays.sdk.Soundpays;
+import com.soundpays.sdk.callbacks.SoundpaysAudioCallback;
+import com.soundpays.sdk.callbacks.SoundpaysCancelAudioCallback;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,6 +50,11 @@ public class MainActivity extends BrightcovePlayer {
     private EventEmitter eventEmitter;
     private GoogleIMAComponent googleIMAComponent;
     private BrightcoveMediaController mediaController;
+
+    private Soundpays bmClient;
+
+    private Handler handler = new Handler(Looper.getMainLooper());
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,14 +83,46 @@ public class MainActivity extends BrightcovePlayer {
 
         Catalog catalog = new Catalog(eventEmitter, getString(R.string.account_id), getString(R.string.policy_key));
         catalog.findPlaylistByReferenceID("play_2017_4_videos", new PlaylistListener() {
-                public void onPlaylist(Playlist playlist) {
-                    brightcoveVideoView.addAll(playlist.getVideos());
-                }
+            public void onPlaylist(Playlist playlist) {
+                brightcoveVideoView.addAll(playlist.getVideos());
+            }
 
-                public void onError(String error) {
-                    Log.e(TAG, error);
-                }
-            });
+            public void onError(String error) {
+                Log.e(TAG, error);
+            }
+        });
+
+        bmClient = Soundpays.getInstance(getApplication());
+        startSoundScan();
+    }
+
+    private void startSoundScan() {
+        soundScan();
+    }
+
+    private void soundScan() {
+        System.out.println("lalala start sound scan");
+        bmClient.stopAudioScan(new SoundpaysCancelAudioCallback() {
+            @Override
+            public void onCancelComplete() {
+
+            }
+        });
+        bmClient.beginAudioScan(new SoundpaysAudioCallback() {
+            @Override
+            public void onSuccess() {
+                System.out.println("lalala success "+ getCode());
+                handler.postDelayed(() -> soundScan(), 2000);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                System.out.println("lalala "+ e);
+                e.printStackTrace();
+                handler.postDelayed(() -> soundScan(), 2000);
+            }
+        });
+//        bmClient.onActivityCreated(this, BMStyle.LIGHT);
     }
 
     /**
@@ -90,7 +130,8 @@ public class MainActivity extends BrightcovePlayer {
      */
     private String[] googleAds = {
         // Honda Pilot
-        "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fhanna_MA_group%2Fvideo_comp_app&ciu_szs=&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&m_ast=vast&url=[referrer_url]&correlator=[timestamp]"
+        "http://pubads.g.doubleclick.net/gampad/ads?sz=400x300&iu=%2F6062%2Fhanna_MA_group%2Fvideo_comp_app&ciu_szs=&impl=s&gdfp_req=1&env=vp"
+            + "&output=xml_vast2&unviewed_position_start=1&m_ast=vast&url=[referrer_url]&correlator=[timestamp]"
     };
 
     /**
