@@ -292,12 +292,12 @@ public class MainActivity extends BrightcovePlayerAppCompat {
                 // URL, and point each to the ad display container
                 // created above.
                 ArrayList<AdsRequest> adsRequests = new ArrayList<AdsRequest>(googleAds.length);
-                AdsLoader loader = sdkFactory.createAdsLoader(MainActivity.this);
+//                AdsLoader loader = sdkFactory.createAdsLoader(MainActivity.this);
                 for (String adURL : googleAds) {
                     AdsRequest adsRequest = sdkFactory.createAdsRequest();
                     adsRequest.setAdTagUrl(adURL);
-//                    adsRequest.setAdDisplayContainer(container);
-                    loader.requestAds(adsRequest);
+                    adsRequest.setAdDisplayContainer(container);
+//                    loader.requestAds(adsRequest);
                     adsRequests.add(adsRequest);
                 }
 
