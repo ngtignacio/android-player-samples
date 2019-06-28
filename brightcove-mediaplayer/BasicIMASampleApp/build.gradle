@@ -2,6 +2,13 @@ android {
   defaultConfig{
     applicationId = "com.brightcove.player.samples.ima.basicimasampleapp"
   }
+
+  buildTypes {
+    release {
+      minifyEnabled true
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
 }
 
 //configurations.all {
